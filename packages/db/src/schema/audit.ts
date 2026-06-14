@@ -23,6 +23,20 @@ export const auditLogs = pgTable('audit_logs', {
   at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Access audit log — records READS of sensitive PII (farmer bank details,
+// certification documents). Distinct from audit_logs (which records mutations).
+// CLAUDE.md §11.1: bank details access must be audit-logged.
+export const accessAuditLogs = pgTable('access_audit_logs', {
+  id: text('id').primaryKey().$defaultFn(createId),
+  actorUserId: text('actor_user_id').notNull(),
+  actorRole: text('actor_role').notNull(),
+  resource: text('resource').notNull(), // e.g. 'farmer_bank_details', 'certification_document'
+  resourceId: text('resource_id').notNull(), // farmer_profile id / certification id
+  action: text('action').notNull().default('read'),
+  context: jsonb('context'), // optional: ip, reason
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // In-app notifications
 export const notifications = pgTable('notifications', {
   id: text('id').primaryKey().$defaultFn(createId),

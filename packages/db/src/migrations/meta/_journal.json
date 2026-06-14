@@ -15,6 +15,13 @@
       "when": 1781280255759,
       "tag": "0001_rls_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781429377780,
+      "tag": "0002_access_audit_logs",
+      "breakpoints": true
     }
   ]
 }

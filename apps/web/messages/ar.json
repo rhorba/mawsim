@@ -176,5 +176,39 @@
     "sectorOther": "أخرى",
     "completedDeals": "عمليات الشراء المنجزة",
     "avgRating": "متوسط التقييم"
+  },
+  "profile": {
+    "farmerTitle": "ملفي كمنتج",
+    "farmerSubtitle": "قدّم مزرعتك للمشترين.",
+    "buyerTitle": "ملفي كمشتري",
+    "buyerSubtitle": "أدخل معلومات شركتك.",
+    "selectRegion": "اختر الجهة",
+    "selectSector": "اختر القطاع",
+    "selectProducts": "اختر منتجاتك",
+    "atLeastOneProduct": "اختر منتجاً واحداً على الأقل.",
+    "communeOptional": "الجماعة (اختياري)",
+    "saved": "تم حفظ الملف.",
+    "saveError": "فشل الحفظ. تحقق من الحقول.",
+    "verifiedBusiness": "شركة موثّقة",
+    "unverifiedBusiness": "التوثيق قيد الانتظار",
+    "requestVerification": "طلب التوثيق",
+    "verificationSubmitted": "تم إرسال طلب التوثيق.",
+    "verificationNeedsIce": "أدخل رقم ICE صالحاً (15 رقماً) لطلب التوثيق.",
+    "stats": "إحصائيات",
+    "ratingLabel": "التقييم",
+    "dealsLabel": "المعاملات",
+    "reviewsLabel": "التقييمات",
+    "certifications": "الشهادات",
+    "noCertifications": "لا توجد شهادات مسجلة.",
+    "certUploadNote": "سيتوفر التحميل الآمن للوثائق (R2 خاص) قريباً.",
+    "verified": "موثّقة",
+    "pending": "قيد الانتظار"
+  },
+  "certTypes": {
+    "organic": "بيولوجي",
+    "global_gap": "GlobalGAP",
+    "label_maroc": "العلامة المغربية",
+    "fair_trade": "تجارة عادلة",
+    "other": "أخرى"
   }
 }

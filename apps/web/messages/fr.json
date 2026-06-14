@@ -176,5 +176,39 @@
     "sectorOther": "Autre",
     "completedDeals": "Achats réalisés",
     "avgRating": "Note moyenne"
+  },
+  "profile": {
+    "farmerTitle": "Mon profil producteur",
+    "farmerSubtitle": "Présentez votre exploitation aux acheteurs.",
+    "buyerTitle": "Mon profil acheteur",
+    "buyerSubtitle": "Renseignez les informations de votre entreprise.",
+    "selectRegion": "Sélectionnez une région",
+    "selectSector": "Sélectionnez un secteur",
+    "selectProducts": "Sélectionnez vos produits",
+    "atLeastOneProduct": "Sélectionnez au moins un produit.",
+    "communeOptional": "Commune (optionnel)",
+    "saved": "Profil enregistré.",
+    "saveError": "Échec de l'enregistrement. Vérifiez les champs.",
+    "verifiedBusiness": "Entreprise vérifiée",
+    "unverifiedBusiness": "Vérification en attente",
+    "requestVerification": "Demander la vérification",
+    "verificationSubmitted": "Demande de vérification envoyée.",
+    "verificationNeedsIce": "Renseignez un ICE valide (15 chiffres) pour demander la vérification.",
+    "stats": "Statistiques",
+    "ratingLabel": "Note",
+    "dealsLabel": "Transactions",
+    "reviewsLabel": "Avis",
+    "certifications": "Certifications",
+    "noCertifications": "Aucune certification enregistrée.",
+    "certUploadNote": "Le téléversement sécurisé des documents (R2 privé) sera disponible prochainement.",
+    "verified": "Vérifiée",
+    "pending": "En attente"
+  },
+  "certTypes": {
+    "organic": "Bio",
+    "global_gap": "GlobalGAP",
+    "label_maroc": "Label Maroc",
+    "fair_trade": "Commerce équitable",
+    "other": "Autre"
   }
 }
