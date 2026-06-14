@@ -49,6 +49,14 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", ".next", "dist", "build", "*.generated.*", "next-env.d.ts"]
+    "ignore": [
+      "node_modules",
+      ".next",
+      "dist",
+      "build",
+      "*.generated.*",
+      "next-env.d.ts",
+      "**/migrations/meta/**"
+    ]
   }
 }

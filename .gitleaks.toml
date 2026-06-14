@@ -1,0 +1,12 @@
+# Mawsim gitleaks config — extends gitleaks default ruleset.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Non-sensitive, intentional CI test/build stub secrets (fixed dummy values)"
+# The CI workflow hard-codes throwaway test values (AUTH_SECRET, ENCRYPTION_KEY)
+# required by env validation. These are not real credentials.
+paths = [
+  '''\.github/workflows/ci\.yml''',
+  '''\.env\.example''',
+]
