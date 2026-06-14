@@ -1,0 +1,23 @@
+{
+  "name": "@mawsim/marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mawsim/core": "workspace:*",
+    "@mawsim/db": "workspace:*",
+    "@react-pdf/renderer": "^4.1.6",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

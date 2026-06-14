@@ -1,0 +1,26 @@
+{
+  "name": "mawsim",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "test": "pnpm -r test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "db:migrate": "pnpm --filter @mawsim/db migrate",
+    "db:seed": "pnpm --filter @mawsim/db seed",
+    "db:studio": "pnpm --filter @mawsim/db studio",
+    "worker": "pnpm --filter @mawsim/db worker"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@biomejs/biome", "argon2", "esbuild", "sharp"]
+  }
+}

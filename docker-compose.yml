@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mawsim
+      POSTGRES_USER: mawsim
+      POSTGRES_PASSWORD: mawsim_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/db/src/migrations/0000_init.sql:/docker-entrypoint-initdb.d/00_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mawsim -d mawsim"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://mawsim:mawsim_dev@postgres:5432/mawsim
+      NODE_ENV: production
+
+  worker:
+    build:
+      context: .
+      dockerfile: packages/db/Dockerfile.worker
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://mawsim:mawsim_dev@postgres:5432/mawsim
+      NODE_ENV: production
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

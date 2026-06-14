@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  DATABASE_URL: postgresql://mawsim:mawsim_dev@localhost:5432/mawsim
+  AUTH_SECRET: ci-test-secret-min-32-chars-long-ok
+  ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+  NODE_ENV: test
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # MANDATORY: pgvector/pgvector:pg16 — NOT postgres:16-alpine (no vector extension)
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: mawsim
+          POSTGRES_USER: mawsim
+          POSTGRES_PASSWORD: mawsim_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mawsim -d mawsim"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run migrations
+        run: pnpm db:migrate
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          # Stub values for build-time env validation
+          DATABASE_URL: postgresql://mawsim:x@localhost:5432/mawsim
+          AUTH_SECRET: build-time-stub-secret-32-chars-ok
+          ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
