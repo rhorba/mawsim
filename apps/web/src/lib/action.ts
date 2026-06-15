@@ -1,6 +1,14 @@
 import { AuthorizationError, UnauthenticatedError } from '@mawsim/core';
 import type { Role, Session } from '@mawsim/core';
+import { ZodError } from 'zod';
 import { getSession } from './session';
+
+// Domain errors whose message is safe + useful to show the user (FR-facing).
+const VALIDATION_ERROR_NAMES = new Set([
+  'ListingValidationError',
+  'ListingTransitionError',
+  'DealTransitionError',
+]);
 
 export type ActionResult<T> =
   | { success: true; data: T }
@@ -36,6 +44,16 @@ export function withRole<TArgs extends unknown[], TReturn>(
       }
       if (err instanceof AuthorizationError) {
         return { success: false, error: err.message, code: 'FORBIDDEN' };
+      }
+      if (err instanceof ZodError) {
+        return {
+          success: false,
+          error: err.issues[0]?.message ?? 'Données invalides',
+          code: 'VALIDATION',
+        };
+      }
+      if (err instanceof Error && VALIDATION_ERROR_NAMES.has(err.name)) {
+        return { success: false, error: err.message, code: 'VALIDATION' };
       }
       console.error('[action]', err);
       return { success: false, error: 'Internal server error', code: 'INTERNAL' };

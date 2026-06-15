@@ -1,4 +1,5 @@
 import PgBoss from 'pg-boss';
+import { QUEUES } from './queues';
 
 const DATABASE_URL = process.env['DATABASE_URL'];
 if (!DATABASE_URL) throw new Error('DATABASE_URL is required');
@@ -12,16 +13,9 @@ const boss = new PgBoss({
 
 boss.on('error', (err) => console.error('[pg-boss]', err));
 
-// ── Queue names ────────────────────────────────────────────────
-export const QUEUES = {
-  PRICE_ALERTS: 'price.alerts',
-  DEAL_EXPIRY: 'deal.expiry',
-  ESCROW_SWEEP: 'escrow.sweep',
-  LOGISTICS_SWEEP: 'logistics.sweep',
-  AUCTION_CLOSE: 'auction.close',
-} as const;
-
-export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
+// Queue names live in ./queues (side-effect free) so producers can import them
+// without starting this worker. Re-exported here for backwards compatibility.
+export { QUEUES, type QueueName } from './queues';
 
 // ── Handlers ───────────────────────────────────────────────────
 
@@ -63,6 +57,15 @@ async function handleAuctionClose(jobs: Jobs) {
   }
 }
 
+async function handleListingEmbed(jobs: Jobs) {
+  for (const job of jobs) {
+    console.log('[worker] listing.embed', job.data);
+    // The product vector is written synchronously on publish (see
+    // apps/web/src/server/listing.ts). This async hook is reserved for future
+    // re-embedding on edits and bulk back-fills. No-op for v0.1.
+  }
+}
+
 // ── Startup ────────────────────────────────────────────────────
 
 async function start() {
@@ -80,6 +83,7 @@ async function start() {
   await boss.work(QUEUES.ESCROW_SWEEP, handleEscrowSweep);
   await boss.work(QUEUES.LOGISTICS_SWEEP, handleLogisticsSweep);
   await boss.work(QUEUES.AUCTION_CLOSE, handleAuctionClose);
+  await boss.work(QUEUES.LISTING_EMBED, handleListingEmbed);
 
   console.log('[worker] all queues registered:', Object.values(QUEUES).join(', '));
 }
