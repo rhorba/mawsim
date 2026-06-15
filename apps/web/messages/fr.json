@@ -210,5 +210,48 @@
     "label_maroc": "Label Maroc",
     "fair_trade": "Commerce équitable",
     "other": "Autre"
+  },
+  "listingBrowse": {
+    "title": "Offres du marché",
+    "subtitle": "Parcourez les récoltes disponibles. Filtrez par produit, région, qualité et prix.",
+    "empty": "Aucune offre ne correspond à vos critères.",
+    "maxPrice": "Prix max (MAD/qtx)",
+    "reset": "Réinitialiser",
+    "back": "Retour aux offres",
+    "offerNote": "Connectez-vous pour faire une offre.",
+    "producer": "Producteur",
+    "dealsShort": "transactions"
+  },
+  "postListing": {
+    "subtitle": "Décrivez votre récolte. Publiez-la pour la rendre visible aux acheteurs."
+  },
+  "myListings": {
+    "title": "Mes annonces",
+    "subtitle": "Gérez vos offres : brouillons, publications, expirations.",
+    "empty": "Vous n'avez pas encore d'annonce. Créez-en une.",
+    "publish": "Publier",
+    "expire": "Expirer"
+  },
+  "rfq": {
+    "new": "Nouvel appel d'offres",
+    "subtitle": "Décrivez votre besoin. Mawsim vous propose les offres les plus pertinentes.",
+    "quantityMin": "Quantité min (qtx)",
+    "quantityMax": "Quantité max (qtx)",
+    "requiredGrade": "Qualité requise",
+    "maxPrice": "Prix max",
+    "deliveryRegion": "Région de livraison",
+    "neededBy": "Besoin avant le",
+    "submitCta": "Publier et voir les offres",
+    "matchesTitle": "Offres correspondantes",
+    "noMatches": "Aucune offre correspondante pour le moment.",
+    "matchScore": "Pertinence",
+    "myTitle": "Mes appels d'offres",
+    "mySubtitle": "Vos demandes d'achat et les offres correspondantes.",
+    "empty": "Vous n'avez pas encore d'appel d'offres.",
+    "view": "Voir",
+    "closeCta": "Clôturer",
+    "statusOpen": "Ouvert",
+    "statusMatched": "Correspondances trouvées",
+    "statusClosed": "Clôturé"
   }
 }

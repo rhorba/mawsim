@@ -76,6 +76,36 @@ export function scoreMatch(rfq: RfqCriteria, listing: MatchableListing): number 
   return 0.8 * semantic + 0.2 * regionBonus;
 }
 
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+export type RfqRerankInput = {
+  similarity: number; // 0..1, derived from the pgvector cosine distance
+  listingGrade: QualityGrade;
+  requiredGrade: QualityGrade;
+  sellerRating: number; // 0..5
+  askPricePerQtx: number; // integer centimes
+  maxPricePerQtx?: number | null;
+};
+
+/**
+ * Re-rank score in [0,1] for a candidate that already cleared `rfqHardFilter`.
+ * Weights follow the Market Engine spec: semantic similarity 50% + quality grade
+ * 25% + seller rating 15% + price competitiveness 10%. Surfaced to the buyer for
+ * transparency ("why was this listing matched").
+ */
+export function computeMatchScore(i: RfqRerankInput): number {
+  const sim = clamp01(i.similarity);
+  // A higher grade than required ranks above an exact match.
+  const grade = clamp01(gradeRank(i.listingGrade) / 3);
+  const rating = clamp01(i.sellerRating / 5);
+  let price = 0.5; // neutral when the buyer set no ceiling
+  if (i.maxPricePerQtx && i.maxPricePerQtx > 0) {
+    // Cheaper relative to the buyer's ceiling scores higher; at-ceiling ≈ 0.
+    price = clamp01((i.maxPricePerQtx - i.askPricePerQtx) / i.maxPricePerQtx);
+  }
+  return 0.5 * sim + 0.25 * grade + 0.15 * rating + 0.1 * price;
+}
+
 export type RankedMatch = { listing: MatchableListing; score: number };
 
 /**
