@@ -39,6 +39,8 @@ describeIf('RLS role isolation', () => {
   const farmerBProfile = randomUUID();
   const buyerProfile = randomUUID();
   const certId = randomUUID();
+  const dealId = randomUUID();
+  const offerId = randomUUID();
 
   beforeAll(async () => {
     owner = new Pool({ connectionString: DATABASE_URL });
@@ -75,9 +77,25 @@ describeIf('RLS role isolation', () => {
         VALUES ($1,$2,'organic','Ecocert',now() + interval '1 year','certs/secret-doc.pdf')`,
       [certId, farmerAProfile]
     );
+    // A deal between farmer A and the buyer, with the buyer's opening offer.
+    await owner.query(
+      `INSERT INTO deals
+        (id, farmer_id, buyer_id, product_category, quantity_qtx,
+         agreed_price_per_qtx, total_amount, delivery_region, delivery_date, status)
+        VALUES ($1,$2,$3,'cereals',150,32000,4800000,'Casablanca-Settat',
+                now() + interval '60 days','offer_made')`,
+      [dealId, farmerAProfile, buyerProfile]
+    );
+    await owner.query(
+      `INSERT INTO offers (id, deal_id, author_user_id, price_per_qtx, quantity_qtx)
+        VALUES ($1,$2,$3,32000,150)`,
+      [offerId, dealId, buyerUser]
+    );
   });
 
   afterAll(async () => {
+    await owner.query('DELETE FROM offers WHERE id = $1', [offerId]);
+    await owner.query('DELETE FROM deals WHERE id = $1', [dealId]);
     await owner.query('DELETE FROM farmer_certifications WHERE id = $1', [certId]);
     await owner.query('DELETE FROM farmer_profiles WHERE id = ANY($1)', [
       [farmerAProfile, farmerBProfile],
@@ -159,5 +177,63 @@ describeIf('RLS role isolation', () => {
       return r.rows;
     });
     expect(rows).toHaveLength(0);
+  });
+
+  // --- Sprint 3: deal + offer RLS (migration 0004) ---
+
+  it('a party (farmer A) sees their deal and its offers', async () => {
+    const { deals, offers } = await asUser(farmerAUser, 'farmer', async (c) => {
+      const d = await c.query('SELECT id FROM deals WHERE id = $1', [dealId]);
+      const o = await c.query('SELECT id FROM offers WHERE deal_id = $1', [dealId]);
+      return { deals: d.rows, offers: o.rows };
+    });
+    expect(deals).toHaveLength(1);
+    expect(offers).toHaveLength(1);
+  });
+
+  it('a non-party farmer (B) cannot see the deal or its offers', async () => {
+    const { deals, offers } = await asUser(farmerBUser, 'farmer', async (c) => {
+      const d = await c.query('SELECT id FROM deals WHERE id = $1', [dealId]);
+      const o = await c.query('SELECT id FROM offers WHERE deal_id = $1', [dealId]);
+      return { deals: d.rows, offers: o.rows };
+    });
+    expect(deals).toHaveLength(0);
+    expect(offers).toHaveLength(0);
+  });
+
+  it('a non-party cannot insert an offer on a deal (RLS WITH CHECK denies)', async () => {
+    await expect(
+      asUser(farmerBUser, 'farmer', async (c) => {
+        await c.query(
+          `INSERT INTO offers (deal_id, author_user_id, price_per_qtx, quantity_qtx)
+            VALUES ($1,$2,31000,150)`,
+          [dealId, farmerBUser]
+        );
+      })
+    ).rejects.toThrow();
+  });
+
+  it('a party cannot forge author_user_id on an offer', async () => {
+    await expect(
+      asUser(buyerUser, 'buyer', async (c) => {
+        await c.query(
+          `INSERT INTO offers (deal_id, author_user_id, price_per_qtx, quantity_qtx)
+            VALUES ($1,$2,31000,150)`,
+          [dealId, farmerAUser] // not the caller
+        );
+      })
+    ).rejects.toThrow();
+  });
+
+  it('a party (buyer) can insert their own offer on the deal', async () => {
+    const inserted = await asUser(buyerUser, 'buyer', async (c) => {
+      const r = await c.query(
+        `INSERT INTO offers (deal_id, author_user_id, price_per_qtx, quantity_qtx)
+          VALUES ($1,$2,31500,150) RETURNING id`,
+        [dealId, buyerUser]
+      );
+      return r.rows;
+    });
+    expect(inserted).toHaveLength(1);
   });
 });

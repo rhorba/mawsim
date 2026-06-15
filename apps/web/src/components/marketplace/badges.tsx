@@ -32,6 +32,15 @@ const statusStyles: Record<string, string> = {
   open: 'bg-[var(--color-primary-light)] text-[var(--color-primary)]',
   matched: 'bg-[var(--color-primary-light)] text-[var(--color-secondary)]',
   closed: 'bg-[var(--color-bg)] text-[var(--color-muted)]',
+  // Deal lifecycle
+  offer_made: 'bg-[var(--color-primary-light)] text-[var(--color-primary)]',
+  agreed: 'bg-[var(--color-secondary)] text-white',
+  contract_signed: 'bg-[var(--color-secondary)] text-white',
+  escrow_funded: 'bg-[var(--color-info)] text-white',
+  in_transit: 'bg-[var(--color-info)] text-white',
+  delivered: 'bg-[var(--color-primary-light)] text-[var(--color-secondary)]',
+  completed: 'bg-[var(--color-secondary)] text-white',
+  disputed: 'bg-[var(--color-danger-light)] text-[var(--color-danger)]',
 };
 
 export function StatusBadge({ status, label }: { status: string; label: string }) {

@@ -2,6 +2,7 @@ import { GradeBadge } from '@/components/marketplace/badges';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
+import { getSession } from '@/lib/session';
 import { getPublicListing } from '@/server/public-listings';
 import { formatMAD } from '@mawsim/core';
 import { getTranslations } from 'next-intl/server';
@@ -20,7 +21,10 @@ export default async function ListingDetailPage({
   if (!l) notFound();
 
   const t = await getTranslations();
+  const session = await getSession();
   const loc = locale === 'ar' ? 'ar' : 'fr';
+  // Buyers go straight to the offer form; everyone else is routed via login.
+  const offerHref = session?.role === 'buyer' ? `/buyer/offer/${l.id}` : '/login';
   const fmtDate = (iso: string) =>
     new Intl.DateTimeFormat(loc === 'ar' ? 'ar-MA' : 'fr-MA', { dateStyle: 'long' }).format(
       new Date(iso)
@@ -94,11 +98,13 @@ export default async function ListingDetailPage({
                 {t('common.perQtx')}
               </p>
               <Button asChild className="w-full mt-4">
-                <Link href="/login">{t('listing.makeOffer')}</Link>
+                <Link href={offerHref}>{t('listing.makeOffer')}</Link>
               </Button>
-              <p className="text-xs text-[var(--color-muted)] text-center mt-2">
-                {t('listingBrowse.offerNote')}
-              </p>
+              {session?.role !== 'buyer' && (
+                <p className="text-xs text-[var(--color-muted)] text-center mt-2">
+                  {t('listingBrowse.offerNote')}
+                </p>
+              )}
             </CardContent>
           </Card>
 

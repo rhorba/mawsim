@@ -8,6 +8,7 @@ const VALIDATION_ERROR_NAMES = new Set([
   'ListingValidationError',
   'ListingTransitionError',
   'DealTransitionError',
+  'NegotiationError',
 ]);
 
 export type ActionResult<T> =
