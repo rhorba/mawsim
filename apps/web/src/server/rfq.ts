@@ -4,7 +4,7 @@ import { withRole } from '@/lib/action';
 import { RFQCreateSchema } from '@mawsim/core';
 import type { ProductCategory, QualityGrade } from '@mawsim/core';
 import { type DB, withUserContext } from '@mawsim/db';
-import { auditLogs, buyerProfiles, farmerProfiles, listings, rfqs } from '@mawsim/db/schema';
+import { auditLogs, buyerProfiles, farmerPublicProfiles, listings, rfqs } from '@mawsim/db/schema';
 import {
   type MatchableListing,
   computeMatchScore,
@@ -75,12 +75,12 @@ async function matchListingsToRfq(
   const rows = await tx
     .select({
       listing: listings,
-      farmName: farmerProfiles.farmName,
-      sellerRating: farmerProfiles.avgRating,
+      farmName: farmerPublicProfiles.farmName,
+      sellerRating: farmerPublicProfiles.avgRating,
       distance,
     })
     .from(listings)
-    .innerJoin(farmerProfiles, eq(listings.farmerId, farmerProfiles.id))
+    .innerJoin(farmerPublicProfiles, eq(listings.farmerId, farmerPublicProfiles.id))
     .where(
       and(
         eq(listings.status, 'active'),

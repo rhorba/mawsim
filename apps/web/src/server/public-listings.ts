@@ -1,10 +1,10 @@
-// Public marketplace reads — NO auth, NO user context. Runs as the app role with
-// RLS in effect: `listings_select` exposes status='active' rows to everyone and
-// `farmer_profiles_public_select` (migration 0003) exposes farmer PUBLIC fields.
-// We deliberately select only public columns — never bank_details_encrypted.
+// Public marketplace reads — NO auth, NO user context. `listings_select` RLS
+// exposes status='active' rows publicly; farmer PUBLIC fields come from the
+// `farmer_public_profiles` VIEW (migration 0003), which structurally cannot
+// expose bank_details_encrypted.
 import type { ProductCategory, QualityGrade } from '@mawsim/core';
 import { db } from '@mawsim/db';
-import { farmerProfiles, listings } from '@mawsim/db/schema';
+import { farmerPublicProfiles, listings } from '@mawsim/db/schema';
 import { type SQL, and, desc, eq, gt, lte } from 'drizzle-orm';
 import type { PublicListingCard, PublicListingDetail, PublicListingFilters } from './listing-types';
 
@@ -24,10 +24,10 @@ const publicColumns = {
   description: listings.description,
   viewCount: listings.viewCount,
   createdAt: listings.createdAt,
-  farmName: farmerProfiles.farmName,
-  sellerRating: farmerProfiles.avgRating,
-  reviewCount: farmerProfiles.reviewCount,
-  completedDeals: farmerProfiles.completedDeals,
+  farmName: farmerPublicProfiles.farmName,
+  sellerRating: farmerPublicProfiles.avgRating,
+  reviewCount: farmerPublicProfiles.reviewCount,
+  completedDeals: farmerPublicProfiles.completedDeals,
 };
 
 type Row = {
@@ -95,7 +95,7 @@ export async function browsePublicListings(
   const rows = await db
     .select(publicColumns)
     .from(listings)
-    .innerJoin(farmerProfiles, eq(listings.farmerId, farmerProfiles.id))
+    .innerJoin(farmerPublicProfiles, eq(listings.farmerId, farmerPublicProfiles.id))
     .where(and(...conditions))
     .orderBy(desc(listings.createdAt))
     .limit(60);
@@ -108,7 +108,7 @@ export async function getPublicListing(id: string): Promise<PublicListingDetail 
   const [row] = await db
     .select(publicColumns)
     .from(listings)
-    .innerJoin(farmerProfiles, eq(listings.farmerId, farmerProfiles.id))
+    .innerJoin(farmerPublicProfiles, eq(listings.farmerId, farmerPublicProfiles.id))
     .where(and(eq(listings.id, id), eq(listings.status, 'active')))
     .limit(1);
 
