@@ -176,7 +176,26 @@
     "signContractCta": "Signer le contrat",
     "agreedBanner": "Accord trouvé. Le contrat peut maintenant être signé.",
     "signedBanner": "Contrat signé. Étape suivante : paiement sécurisé (séquestre).",
-    "closedBanner": "Cette négociation est close."
+    "closedBanner": "Cette négociation est close.",
+    "escrow": {
+      "title": "Paiement sécurisé (séquestre)",
+      "gross": "Montant de la transaction",
+      "deposit": "Acompte",
+      "remainder": "Solde",
+      "farmerPayout": "Paiement producteur",
+      "fees": "Commission plateforme",
+      "paid": "Payé",
+      "fundDepositCta": "Financer l'acompte ({amount})",
+      "awaitingDeposit": "En attente du financement de l'acompte par l'acheteur.",
+      "dispatchCta": "Marquer comme expédié",
+      "awaitingDispatch": "Acompte sécurisé. En attente de l'expédition par le producteur.",
+      "confirmPrompt": "Confirmez la livraison une fois la marchandise reçue/expédiée.",
+      "youConfirmed": "Vous avez confirmé la livraison.",
+      "confirmDeliveryCta": "Confirmer la livraison",
+      "counterpartyConfirmed": "L'autre partie a confirmé la livraison.",
+      "counterpartyPending": "En attente de la confirmation de l'autre partie.",
+      "released": "Transaction terminée. Le séquestre a été libéré au producteur ({payout})."
+    }
   },
   "farmer": {
     "dashboard": "Tableau de bord producteur",

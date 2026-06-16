@@ -36,6 +36,13 @@
       "when": 1781520000000,
       "tag": "0004_deal_offer_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781610000000,
+      "tag": "0005_escrow_funding",
+      "breakpoints": true
     }
   ]
 }

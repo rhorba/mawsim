@@ -37,6 +37,11 @@ export const deals = pgTable('deals', {
   contractKey: text('contract_key'),
   logisticsRequestId: text('logistics_request_id'),
   notes: text('notes'),
+  // Dual delivery confirmation (S4): escrow remainder is released only once BOTH
+  // parties confirm. Goods dispatch (in_transit) is the farmer's action; these
+  // timestamps record each side's receipt/dispatch confirmation independently.
+  farmerConfirmedDeliveryAt: timestamp('farmer_confirmed_delivery_at', { withTimezone: true }),
+  buyerConfirmedDeliveryAt: timestamp('buyer_confirmed_delivery_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

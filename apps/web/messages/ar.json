@@ -176,7 +176,26 @@
     "signContractCta": "توقيع العقد",
     "agreedBanner": "تم الاتفاق. يمكن الآن توقيع العقد.",
     "signedBanner": "تم توقيع العقد. الخطوة التالية: الدفع المؤمّن (الضمان).",
-    "closedBanner": "هذه المفاوضة مغلقة."
+    "closedBanner": "هذه المفاوضة مغلقة.",
+    "escrow": {
+      "title": "الدفع المؤمّن (الضمان)",
+      "gross": "مبلغ المعاملة",
+      "deposit": "الدفعة الأولى",
+      "remainder": "الرصيد",
+      "farmerPayout": "مستحقات المنتِج",
+      "fees": "عمولة المنصة",
+      "paid": "مدفوع",
+      "fundDepositCta": "تمويل الدفعة الأولى ({amount})",
+      "awaitingDeposit": "في انتظار تمويل الدفعة الأولى من المشتري.",
+      "dispatchCta": "تحديد كمُرسَل",
+      "awaitingDispatch": "تم تأمين الدفعة الأولى. في انتظار الإرسال من المنتِج.",
+      "confirmPrompt": "أكّد التسليم بمجرد استلام/إرسال البضاعة.",
+      "youConfirmed": "لقد أكّدت التسليم.",
+      "confirmDeliveryCta": "تأكيد التسليم",
+      "counterpartyConfirmed": "أكّد الطرف الآخر التسليم.",
+      "counterpartyPending": "في انتظار تأكيد الطرف الآخر.",
+      "released": "اكتملت المعاملة. تم تحرير الضمان للمنتِج ({payout})."
+    }
   },
   "farmer": {
     "dashboard": "لوحة تحكم المنتج",

@@ -9,6 +9,7 @@ import {
   auditLogs,
   buyerProfiles,
   deals,
+  escrows,
   farmerProfiles,
   listings,
   offers,
@@ -130,6 +131,8 @@ async function buildThread(tx: DB, deal: DealRecord, session: Session): Promise<
   const isOpen = deal.status === 'offer_made' || deal.status === 'negotiating';
   const counterpartyName = await counterpartyNameFor(tx, deal, viewerSide);
 
+  const [escrow] = await tx.select().from(escrows).where(eq(escrows.dealId, deal.id)).limit(1);
+
   return {
     deal,
     offers: history,
@@ -138,6 +141,7 @@ async function buildThread(tx: DB, deal: DealRecord, session: Session): Promise<
     // It is the viewer's turn when the standing offer is the *other* party's,
     // and the deal is still open to responses.
     canRespond: isOpen && !!standing && standing.authorUserId !== session.userId,
+    escrow: (escrow as DealThread['escrow']) ?? null,
   };
 }
 

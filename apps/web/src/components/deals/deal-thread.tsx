@@ -1,10 +1,21 @@
+import { EscrowPanel } from '@/components/deals/escrow-panel';
 import { NegotiationPanel } from '@/components/deals/negotiation-panel';
 import { StatusBadge } from '@/components/marketplace/badges';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
 import type { DealThread as DealThreadData } from '@/server/deal-types';
 import { formatMAD } from '@mawsim/core';
+import { buildEscrow } from '@mawsim/payments';
 import { getTranslations } from 'next-intl/server';
+
+// Deal states where escrow funding / delivery / release is in play.
+const ESCROW_STAGES = new Set([
+  'contract_signed',
+  'escrow_funded',
+  'in_transit',
+  'delivered',
+  'completed',
+]);
 
 export async function DealThread({
   thread,
@@ -18,8 +29,17 @@ export async function DealThread({
   locale: 'fr' | 'ar';
 }) {
   const t = await getTranslations();
-  const { deal, offers } = thread;
+  const { deal, offers, escrow } = thread;
   const standing = offers[0];
+
+  // Escrow row exists once the deposit is funded; before that, preview the split
+  // from the deal total so the buyer sees what they're about to commit to.
+  const breakdown = escrow ?? buildEscrow(deal.totalAmount);
+  const showEscrow = ESCROW_STAGES.has(deal.status);
+  const farmerConfirmed = !!deal.farmerConfirmedDeliveryAt;
+  const buyerConfirmed = !!deal.buyerConfirmedDeliveryAt;
+  const myConfirmed = thread.viewerSide === 'buyer' ? buyerConfirmed : farmerConfirmed;
+  const theirConfirmed = thread.viewerSide === 'buyer' ? farmerConfirmed : buyerConfirmed;
 
   const fmtDate = (d: Date) =>
     new Intl.DateTimeFormat(locale === 'ar' ? 'ar-MA' : 'fr-MA', { dateStyle: 'long' }).format(d);
@@ -82,6 +102,31 @@ export async function DealThread({
           />
         </CardContent>
       </Card>
+
+      {/* Escrow: deposit (30%) → dispatch → dual delivery confirm → release (70%) */}
+      {showEscrow && (
+        <Card>
+          <CardContent className="pt-6">
+            <EscrowPanel
+              dealId={deal.id}
+              dealStatus={deal.status}
+              viewerSide={thread.viewerSide}
+              escrowStatus={escrow?.status ?? null}
+              breakdown={{
+                grossAmount: breakdown.grossAmount,
+                deposit: breakdown.deposit,
+                remainder: breakdown.remainder,
+                platformFeeFromBuyer: breakdown.platformFeeFromBuyer,
+                platformFeeFromFarmer: breakdown.platformFeeFromFarmer,
+                farmerPayout: breakdown.farmerPayout,
+              }}
+              locale={locale}
+              myConfirmed={myConfirmed}
+              theirConfirmed={theirConfirmed}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Offer history (newest first) */}
       <section className="space-y-3">

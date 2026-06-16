@@ -1,9 +1,10 @@
 // Plain (non-"use server") type module so the negotiation server-action file
 // only exports async functions, while pages/components can import these types.
-import type { deals, offers } from '@mawsim/db/schema';
+import type { deals, escrows, offers } from '@mawsim/db/schema';
 
 export type DealRecord = typeof deals.$inferSelect;
 export type OfferRecord = typeof offers.$inferSelect;
+export type EscrowRecord = typeof escrows.$inferSelect;
 
 /** A deal as seen by one of its parties, plus the full offer history. */
 export type DealThread = {
@@ -15,6 +16,8 @@ export type DealThread = {
   counterpartyName: string;
   /** True when the standing offer was made by the counterparty (viewer's turn). */
   canRespond: boolean;
+  /** Escrow for the deal once funding starts (contract_signed onward), else null. */
+  escrow: EscrowRecord | null;
 };
 
 /** Compact row for the "my deals" list. */
