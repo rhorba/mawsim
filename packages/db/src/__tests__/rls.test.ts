@@ -122,6 +122,11 @@ describeIf('RLS role isolation', () => {
       const result = await fn(c);
       await c.query('ROLLBACK');
       return result;
+    } catch (err) {
+      // Always rollback so the connection is returned clean to the pool.
+      // If the tx is already aborted the ROLLBACK may itself error — ignore it.
+      await c.query('ROLLBACK').catch(() => {});
+      throw err;
     } finally {
       c.release();
     }
