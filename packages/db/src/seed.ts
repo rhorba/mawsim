@@ -456,6 +456,21 @@ async function main() {
   }
 
   // -------------------------------------------------------------------------
+  // Admin user (1) — provisioned via seed (no self-registration path)
+  // Demo: admin@mawsim.ma / demo1234
+  // -------------------------------------------------------------------------
+  await db.insert(users).values({
+    id: createId(),
+    email: 'admin@mawsim.ma',
+    name: 'Admin Mawsim',
+    role: 'admin',
+    passwordHash,
+    emailVerified: verified,
+    isActive: true,
+    createdAt: daysAgo(200),
+  });
+
+  // -------------------------------------------------------------------------
   // Listings (12) — prices are MAD/quintal via toMoney(); stored as centimes.
   // -------------------------------------------------------------------------
   type ListingSpec = {
@@ -1068,7 +1083,9 @@ async function main() {
     `   ${listingSpecs.length} listings · ${rfqSpecs.length} RFQs · ${dealSpecs.length} deals`
   );
   console.log(`   ${priceSeries.length * 6} price points · 2 price alerts`);
-  console.log('   Demo: mehdi.fellah@demo.mawsim.ma / atlas.food@demo.mawsim.ma (demo1234)');
+  console.log(
+    '   Demo: mehdi.fellah@demo.mawsim.ma / atlas.food@demo.mawsim.ma / admin@mawsim.ma (demo1234)'
+  );
 }
 
 main()
