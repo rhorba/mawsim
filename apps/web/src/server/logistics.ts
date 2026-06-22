@@ -12,9 +12,14 @@ import {
   logisticsRequests,
 } from '@mawsim/db/schema';
 import { assertLogisticsTransition } from '@mawsim/logistics';
+import { createNotification } from '@mawsim/notifications';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { DealRecord } from './deal-types';
+
+function fireNotification(params: Parameters<typeof createNotification>[0]) {
+  createNotification(params).catch((err) => console.error('[logistics] notification failed', err));
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -218,6 +223,32 @@ export const acceptLogisticsQuote = withRole(
         before: { status: req.status },
         after: { status: 'assigned', providerId: quote.providerId },
       });
+
+      // Notify farmer + buyer that logistics is assigned.
+      const [deal] = await tx.select().from(deals).where(eq(deals.id, req.dealId)).limit(1);
+      if (deal) {
+        const d = deal as DealRecord;
+        const [farmerUser] = await tx
+          .select({ userId: farmerProfiles.userId })
+          .from(farmerProfiles)
+          .where(eq(farmerProfiles.id, d.farmerId))
+          .limit(1);
+        const [buyerUser] = await tx
+          .select({ userId: buyerProfiles.userId })
+          .from(buyerProfiles)
+          .where(eq(buyerProfiles.id, d.buyerId))
+          .limit(1);
+        for (const userId of [farmerUser?.userId, buyerUser?.userId]) {
+          if (userId) {
+            fireNotification({
+              userId,
+              event: 'logistics_assigned',
+              entityId: req.id,
+              data: { dealId: d.id },
+            });
+          }
+        }
+      }
     });
   }
 );

@@ -5,6 +5,7 @@ import type { Session } from '@mawsim/core';
 import { type DB, withUserContext } from '@mawsim/db';
 import { auditLogs, buyerProfiles, deals, escrows, farmerProfiles } from '@mawsim/db/schema';
 import { assertDealTransition } from '@mawsim/marketplace';
+import { createNotification } from '@mawsim/notifications';
 import {
   PaymentError,
   assertEscrowTransition,
@@ -13,6 +14,10 @@ import {
 } from '@mawsim/payments';
 import { eq } from 'drizzle-orm';
 import type { DealRecord } from './deal-types';
+
+function fireNotification(params: Parameters<typeof createNotification>[0]) {
+  createNotification(params).catch((err) => console.error('[escrow] notification failed', err));
+}
 
 // App connects as DB owner; RLS is a backstop (migration 0005 mirrors this), so
 // every query enforces party-ownership explicitly — same convention as
@@ -125,6 +130,21 @@ export const fundDeposit = withRole(['buyer', 'admin'], async (session, dealId: 
         providerRef: charge.providerRef,
       },
     });
+
+    // Notify farmer: deposit received.
+    const [farmerUser] = await tx
+      .select({ userId: farmerProfiles.userId })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.id, deal.farmerId))
+      .limit(1);
+    if (farmerUser) {
+      fireNotification({
+        userId: farmerUser.userId,
+        event: 'payment_received',
+        entityId: deal.id,
+        data: { deposit: e.deposit },
+      });
+    }
   });
 });
 
@@ -260,5 +280,27 @@ export const confirmDelivery = withRole(['farmer', 'buyer'], async (session, dea
         },
       },
     ]);
+
+    // Notify both parties: escrow released + deal completed.
+    const [farmerUser] = await tx
+      .select({ userId: farmerProfiles.userId })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.id, deal.farmerId))
+      .limit(1);
+    const [buyerUser] = await tx
+      .select({ userId: buyerProfiles.userId })
+      .from(buyerProfiles)
+      .where(eq(buyerProfiles.id, deal.buyerId))
+      .limit(1);
+    for (const userId of [farmerUser?.userId, buyerUser?.userId]) {
+      if (userId) {
+        fireNotification({
+          userId,
+          event: 'escrow_released',
+          entityId: deal.id,
+          data: { farmerPayout: escrow.farmerPayout },
+        });
+      }
+    }
   });
 });

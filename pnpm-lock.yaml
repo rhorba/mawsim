@@ -217,6 +217,12 @@ importers:
       '@mawsim/core':
         specifier: workspace:*
         version: link:../core
+      '@mawsim/db':
+        specifier: workspace:*
+        version: link:../db
+      drizzle-orm:
+        specifier: ^0.38.3
+        version: 0.38.4(@types/pg@8.20.0)(@types/react@19.2.16)(pg@8.21.0)(react@19.2.7)
       resend:
         specifier: ^4.0.1
         version: 4.8.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -280,6 +286,9 @@ importers:
       '@mawsim/db':
         specifier: workspace:*
         version: link:../db
+      drizzle-orm:
+        specifier: ^0.38.3
+        version: 0.38.4(@types/pg@8.20.0)(@types/react@19.2.16)(pg@8.21.0)(react@19.2.7)
       zod:
         specifier: ^3.24.1
         version: 3.25.76

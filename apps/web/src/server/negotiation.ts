@@ -20,9 +20,17 @@ import {
   assertDealTransition,
   offerTotal,
 } from '@mawsim/marketplace';
+import { createNotification } from '@mawsim/notifications';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { DealRecord, DealSummary, DealThread, OfferRecord } from './deal-types';
+
+// Fire-and-forget: never throw or block the caller.
+function fireNotification(params: Parameters<typeof createNotification>[0]) {
+  createNotification(params).catch((err) =>
+    console.error('[negotiation] notification failed', err)
+  );
+}
 
 /** Canonical R2 key a deal's contract lives at (uploaded once R2 lands, S6). */
 function contractKeyFor(dealId: string): string {
@@ -214,6 +222,21 @@ export const makeOfferOnListing = withRole(['buyer'], async (session, raw: unkno
       },
     });
 
+    // Notify farmer about incoming offer.
+    const [farmerUser] = await tx
+      .select({ userId: farmerProfiles.userId })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.id, listing.farmerId))
+      .limit(1);
+    if (farmerUser) {
+      fireNotification({
+        userId: farmerUser.userId,
+        event: 'bid_received',
+        entityId: deal.id,
+        data: { pricePerQtx: input.pricePerQtx, quantityQtx: input.quantityQtx },
+      });
+    }
+
     return buildThread(tx, deal as DealRecord, session);
   });
 });
@@ -273,6 +296,37 @@ export const counterOffer = withRole(['farmer', 'buyer'], async (session, raw: u
       after: { pricePerQtx: input.pricePerQtx, quantityQtx: input.quantityQtx },
     });
 
+    // Notify the counterparty about the counter-offer.
+    if (session.role === 'farmer') {
+      const [buyerUser] = await tx
+        .select({ userId: buyerProfiles.userId })
+        .from(buyerProfiles)
+        .where(eq(buyerProfiles.id, deal.buyerId))
+        .limit(1);
+      if (buyerUser) {
+        fireNotification({
+          userId: buyerUser.userId,
+          event: 'counteroffer_received',
+          entityId: deal.id,
+          data: { pricePerQtx: input.pricePerQtx, quantityQtx: input.quantityQtx },
+        });
+      }
+    } else {
+      const [farmerUser] = await tx
+        .select({ userId: farmerProfiles.userId })
+        .from(farmerProfiles)
+        .where(eq(farmerProfiles.id, deal.farmerId))
+        .limit(1);
+      if (farmerUser) {
+        fireNotification({
+          userId: farmerUser.userId,
+          event: 'counteroffer_received',
+          entityId: deal.id,
+          data: { pricePerQtx: input.pricePerQtx, quantityQtx: input.quantityQtx },
+        });
+      }
+    }
+
     return buildThread(tx, updated as DealRecord, session);
   });
 });
@@ -317,6 +371,23 @@ export const acceptOffer = withRole(['farmer', 'buyer'], async (session, dealId:
         quantityQtx: standing.quantityQtx,
       },
     });
+
+    // Notify both parties that the deal is agreed.
+    const [farmerUser] = await tx
+      .select({ userId: farmerProfiles.userId })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.id, deal.farmerId))
+      .limit(1);
+    const [buyerUser] = await tx
+      .select({ userId: buyerProfiles.userId })
+      .from(buyerProfiles)
+      .where(eq(buyerProfiles.id, deal.buyerId))
+      .limit(1);
+    for (const userId of [farmerUser?.userId, buyerUser?.userId]) {
+      if (userId) {
+        fireNotification({ userId, event: 'deal_agreed', entityId: deal.id });
+      }
+    }
 
     return buildThread(tx, updated as DealRecord, session);
   });

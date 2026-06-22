@@ -5,3 +5,4 @@ export * from './contract.js';
 export * from './listing.js';
 export * from './embedding.js';
 export * from './matching.js';
+export * from './reviews.js';

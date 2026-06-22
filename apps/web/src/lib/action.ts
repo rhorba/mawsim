@@ -11,6 +11,7 @@ const VALIDATION_ERROR_NAMES = new Set([
   'EscrowTransitionError',
   'NegotiationError',
   'PaymentError',
+  'ReviewError',
 ]);
 
 export type ActionResult<T> =

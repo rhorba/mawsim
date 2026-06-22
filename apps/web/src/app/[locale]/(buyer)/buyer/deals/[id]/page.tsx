@@ -2,6 +2,7 @@ import { DealThread } from '@/components/deals/deal-thread';
 import { getSession } from '@/lib/session';
 import { getDealLogisticsRequest } from '@/server/logistics';
 import { getDealThread } from '@/server/negotiation';
+import { hasReviewedDeal } from '@/server/reviews';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -14,10 +15,15 @@ export default async function BuyerDealPage({
   const { locale, id } = await params;
   const loc = locale === 'ar' ? 'ar' : 'fr';
   const session = await getSession();
-  const [res, logisticsRes] = await Promise.all([getDealThread(id), getDealLogisticsRequest(id)]);
+  const [res, logisticsRes, reviewedRes] = await Promise.all([
+    getDealThread(id),
+    getDealLogisticsRequest(id),
+    hasReviewedDeal(id),
+  ]);
   if (!session || !res.success || !res.data) notFound();
 
   const logistics = logisticsRes.success ? logisticsRes.data : null;
+  const alreadyReviewed = reviewedRes.success ? reviewedRes.data : false;
 
   return (
     <DealThread
@@ -27,6 +33,7 @@ export default async function BuyerDealPage({
       locale={loc}
       logisticsRequest={logistics?.request ?? null}
       logisticsQuotes={logistics?.quotes ?? []}
+      alreadyReviewed={alreadyReviewed}
     />
   );
 }

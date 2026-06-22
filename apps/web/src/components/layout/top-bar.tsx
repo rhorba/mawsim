@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 interface TopBarProps {
   role?: Role | null;
   locale: string;
+  bellSlot?: React.ReactNode;
 }
 
 const roleColors: Record<Role, string> = {
@@ -26,7 +27,7 @@ const roleLabels: Record<Role, string> = {
   admin: 'Admin',
 };
 
-export function TopBar({ role, locale }: TopBarProps) {
+export function TopBar({ role, locale, bellSlot }: TopBarProps) {
   const t = useTranslations('nav');
   const router = useRouter();
   const otherLocale = locale === 'fr' ? 'ar' : 'fr';
@@ -80,6 +81,7 @@ export function TopBar({ role, locale }: TopBarProps) {
 
           {role ? (
             <div className="flex items-center gap-2">
+              {bellSlot}
               <span
                 className={cn('text-xs font-semibold px-2 py-0.5 rounded-md', roleColors[role])}
               >

@@ -1,6 +1,7 @@
 import { EscrowPanel } from '@/components/deals/escrow-panel';
 import { LogisticsPanel } from '@/components/deals/logistics-panel';
 import { NegotiationPanel } from '@/components/deals/negotiation-panel';
+import { ReviewPanel } from '@/components/deals/review-panel';
 import { StatusBadge } from '@/components/marketplace/badges';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
@@ -29,6 +30,7 @@ export async function DealThread({
   locale,
   logisticsRequest,
   logisticsQuotes,
+  alreadyReviewed = false,
 }: {
   thread: DealThreadData;
   viewerUserId: string;
@@ -36,6 +38,7 @@ export async function DealThread({
   locale: 'fr' | 'ar';
   logisticsRequest?: LogisticsRequestRecord | null;
   logisticsQuotes?: LogisticsQuoteRecord[];
+  alreadyReviewed?: boolean;
 }) {
   const t = await getTranslations();
   const { deal, offers, escrow } = thread;
@@ -147,6 +150,19 @@ export async function DealThread({
               viewerSide={thread.viewerSide}
               logisticsRequest={logisticsRequest ?? null}
               quotes={logisticsQuotes ?? []}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Review: available once deal is completed */}
+      {deal.status === 'completed' && (
+        <Card>
+          <CardContent className="pt-6">
+            <ReviewPanel
+              dealId={deal.id}
+              alreadyReviewed={alreadyReviewed}
+              counterpartyName={thread.counterpartyName}
             />
           </CardContent>
         </Card>
