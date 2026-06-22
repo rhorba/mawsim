@@ -10,7 +10,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./packages/db/src/migrations/0000_init.sql:/docker-entrypoint-initdb.d/00_init.sql
+      - ./packages/db/src/migrations/0000_init_tables.sql:/docker-entrypoint-initdb.d/00_init_tables.sql
+      - ./packages/db/src/migrations/0001_rls_policies.sql:/docker-entrypoint-initdb.d/01_rls_policies.sql
+      - ./packages/db/src/migrations/0002_access_audit_logs.sql:/docker-entrypoint-initdb.d/02_access_audit_logs.sql
+      - ./packages/db/src/migrations/0003_farmer_public_profile.sql:/docker-entrypoint-initdb.d/03_farmer_public_profile.sql
+      - ./packages/db/src/migrations/0004_deal_offer_policies.sql:/docker-entrypoint-initdb.d/04_deal_offer_policies.sql
+      - ./packages/db/src/migrations/0005_escrow_funding.sql:/docker-entrypoint-initdb.d/05_escrow_funding.sql
+      - ./packages/db/src/migrations/0006_offers_id_default.sql:/docker-entrypoint-initdb.d/06_offers_id_default.sql
+      - ./packages/db/src/migrations/0007_reviews_notifications_rls.sql:/docker-entrypoint-initdb.d/07_reviews_notifications_rls.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mawsim -d mawsim"]
       interval: 5s

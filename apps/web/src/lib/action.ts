@@ -12,6 +12,7 @@ const VALIDATION_ERROR_NAMES = new Set([
   'NegotiationError',
   'PaymentError',
   'ReviewError',
+  'AdminValidationError',
 ]);
 
 export type ActionResult<T> =
