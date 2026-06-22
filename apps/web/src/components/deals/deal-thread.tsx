@@ -1,9 +1,11 @@
 import { EscrowPanel } from '@/components/deals/escrow-panel';
+import { LogisticsPanel } from '@/components/deals/logistics-panel';
 import { NegotiationPanel } from '@/components/deals/negotiation-panel';
 import { StatusBadge } from '@/components/marketplace/badges';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
 import type { DealThread as DealThreadData } from '@/server/deal-types';
+import type { LogisticsQuoteRecord, LogisticsRequestRecord } from '@/server/logistics';
 import { formatMAD } from '@mawsim/core';
 import { buildEscrow } from '@mawsim/payments';
 import { getTranslations } from 'next-intl/server';
@@ -17,16 +19,23 @@ const ESCROW_STAGES = new Set([
   'completed',
 ]);
 
+// Deal states where logistics coordination is relevant.
+const LOGISTICS_STAGES = new Set(['escrow_funded', 'in_transit', 'delivered', 'completed']);
+
 export async function DealThread({
   thread,
   viewerUserId,
   basePath,
   locale,
+  logisticsRequest,
+  logisticsQuotes,
 }: {
   thread: DealThreadData;
   viewerUserId: string;
   basePath: string;
   locale: 'fr' | 'ar';
+  logisticsRequest?: LogisticsRequestRecord | null;
+  logisticsQuotes?: LogisticsQuoteRecord[];
 }) {
   const t = await getTranslations();
   const { deal, offers, escrow } = thread;
@@ -123,6 +132,21 @@ export async function DealThread({
               locale={locale}
               myConfirmed={myConfirmed}
               theirConfirmed={theirConfirmed}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Logistics: transport request + quotes */}
+      {LOGISTICS_STAGES.has(deal.status) && (
+        <Card>
+          <CardContent className="pt-6">
+            <LogisticsPanel
+              dealId={deal.id}
+              dealStatus={deal.status}
+              viewerSide={thread.viewerSide}
+              logisticsRequest={logisticsRequest ?? null}
+              quotes={logisticsQuotes ?? []}
             />
           </CardContent>
         </Card>

@@ -50,6 +50,7 @@ export function TopBar({ role, locale }: TopBarProps) {
               <NavLink href="/farmer/listings">{t('myListings')}</NavLink>
               <NavLink href="/farmer/listings/new">{t('postListing')}</NavLink>
               <NavLink href="/farmer/deals">{t('deals')}</NavLink>
+              <NavLink href="/farmer/alerts">Alertes prix</NavLink>
               <NavLink href="/farmer/profile">{t('profile')}</NavLink>
             </>
           )}
@@ -58,10 +59,11 @@ export function TopBar({ role, locale }: TopBarProps) {
               <NavLink href="/buyer/rfqs">{t('myRFQs')}</NavLink>
               <NavLink href="/buyer/rfqs/new">{t('postRFQ')}</NavLink>
               <NavLink href="/buyer/deals">{t('deals')}</NavLink>
+              <NavLink href="/buyer/alerts">Alertes prix</NavLink>
               <NavLink href="/buyer/profile">{t('profile')}</NavLink>
             </>
           )}
-          {role === 'logistics' && <NavLink href="/logistics/requests">{t('logistics')}</NavLink>}
+          {role === 'logistics' && <NavLink href="/logistics">{t('logistics')}</NavLink>}
           {role === 'admin' && <NavLink href="/admin">{t('admin')}</NavLink>}
         </nav>
 

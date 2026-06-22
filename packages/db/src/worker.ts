@@ -25,7 +25,8 @@ type Jobs = PgBoss.Job<Record<string, unknown>>[];
 async function handlePriceAlerts(jobs: Jobs) {
   for (const job of jobs) {
     console.log('[worker] price.alerts tick', job.id);
-    // Sprint 5: check price_alerts table against latest price_points
+    // S5: checkPriceAlerts() lives in @mawsim/pricing; called from the web app
+    // on-demand. Worker stub logs here; S6 wires in-app + email notifications.
   }
 }
 

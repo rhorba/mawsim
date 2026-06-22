@@ -1,5 +1,6 @@
 import { DealThread } from '@/components/deals/deal-thread';
 import { getSession } from '@/lib/session';
+import { getDealLogisticsRequest } from '@/server/logistics';
 import { getDealThread } from '@/server/negotiation';
 import { notFound } from 'next/navigation';
 
@@ -13,8 +14,10 @@ export default async function BuyerDealPage({
   const { locale, id } = await params;
   const loc = locale === 'ar' ? 'ar' : 'fr';
   const session = await getSession();
-  const res = await getDealThread(id);
+  const [res, logisticsRes] = await Promise.all([getDealThread(id), getDealLogisticsRequest(id)]);
   if (!session || !res.success || !res.data) notFound();
+
+  const logistics = logisticsRes.success ? logisticsRes.data : null;
 
   return (
     <DealThread
@@ -22,6 +25,8 @@ export default async function BuyerDealPage({
       viewerUserId={session.userId}
       basePath="/buyer/deals"
       locale={loc}
+      logisticsRequest={logistics?.request ?? null}
+      logisticsQuotes={logistics?.quotes ?? []}
     />
   );
 }
