@@ -108,6 +108,13 @@ export const OfferSchema = z.object({
   message: z.string().max(1000).optional(),
 });
 
+export const BankDetailsSchema = z.object({
+  bankName: z.string().min(2).max(200),
+  rib: z.string().regex(/^\d{24}$/, 'RIB must be 24 digits'),
+  accountHolder: z.string().min(2).max(200),
+  iban: z.string().max(34).optional(),
+});
+
 export const PriceAlertSchema = z.object({
   productCategory: ProductCategorySchema,
   productVariety: z.string().max(100).optional(),

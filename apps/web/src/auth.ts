@@ -1,3 +1,4 @@
+import { checkRateLimit } from '@/lib/rate-limit';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { LoginSchema } from '@mawsim/core';
 import { db } from '@mawsim/db';
@@ -44,11 +45,22 @@ const nextAuth = NextAuth({
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+        const normalizedEmail = email.toLowerCase();
+
+        // Rate-limit by email to mitigate credential stuffing (10 attempts / 15 min)
+        if (!checkRateLimit(`login:${normalizedEmail}`, 10)) return null;
 
         const [user] = await db
-          .select()
+          .select({
+            id: users.id,
+            email: users.email,
+            name: users.name,
+            role: users.role,
+            passwordHash: users.passwordHash,
+            isActive: users.isActive,
+          })
           .from(users)
-          .where(eq(users.email, email.toLowerCase()))
+          .where(eq(users.email, normalizedEmail))
           .limit(1);
 
         if (!user || !user.passwordHash) return null;

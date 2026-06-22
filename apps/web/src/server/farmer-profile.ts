@@ -1,9 +1,15 @@
 'use server';
 
 import { withRole } from '@/lib/action';
-import { FarmerProfileSchema } from '@mawsim/core';
+import { BankDetailsSchema, FarmerProfileSchema, decrypt, encrypt } from '@mawsim/core';
+import type { BankDetails } from '@mawsim/core';
 import { withUserContext } from '@mawsim/db';
-import { auditLogs, farmerCertifications, farmerProfiles } from '@mawsim/db/schema';
+import {
+  accessAuditLogs,
+  auditLogs,
+  farmerCertifications,
+  farmerProfiles,
+} from '@mawsim/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { FarmerCertificationRecord, FarmerProfileRecord } from './profile-types';
@@ -136,6 +142,70 @@ export const addCertification = withRole(['farmer'], async (session, raw: unknow
       })
       .returning();
     return cert as FarmerCertificationRecord;
+  });
+});
+
+// ── Bank details (encrypted at rest, access audit-logged per CNDP §11) ────────
+
+/** Read the signed-in farmer's bank details. Access is audit-logged every call. */
+export const getBankDetails = withRole(['farmer', 'admin'], async (session) => {
+  return withUserContext(session.userId, session.role, async (tx) => {
+    const [profile] = await tx
+      .select({ id: farmerProfiles.id, bankDetailsEncrypted: farmerProfiles.bankDetailsEncrypted })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.userId, session.userId))
+      .limit(1);
+    if (!profile) return null;
+
+    await tx.insert(accessAuditLogs).values({
+      actorUserId: session.userId,
+      actorRole: session.role,
+      resource: 'farmer_bank_details',
+      resourceId: profile.id,
+      action: 'read',
+    });
+
+    if (!profile.bankDetailsEncrypted) return null;
+    return JSON.parse(decrypt(profile.bankDetailsEncrypted)) as BankDetails;
+  });
+});
+
+/** Save encrypted bank details for the signed-in farmer. */
+export const updateBankDetails = withRole(['farmer'], async (session, raw: unknown) => {
+  const input = BankDetailsSchema.parse(raw);
+
+  return withUserContext(session.userId, session.role, async (tx) => {
+    const [profile] = await tx
+      .select({ id: farmerProfiles.id })
+      .from(farmerProfiles)
+      .where(eq(farmerProfiles.userId, session.userId))
+      .limit(1);
+    if (!profile) throw new Error('Profil agriculteur introuvable.');
+
+    const encrypted = encrypt(JSON.stringify(input));
+
+    await tx
+      .update(farmerProfiles)
+      .set({ bankDetailsEncrypted: encrypted, updatedAt: new Date() })
+      .where(eq(farmerProfiles.id, profile.id));
+
+    await tx.insert(accessAuditLogs).values({
+      actorUserId: session.userId,
+      actorRole: session.role,
+      resource: 'farmer_bank_details',
+      resourceId: profile.id,
+      action: 'update',
+    });
+
+    await tx.insert(auditLogs).values({
+      actorUserId: session.userId,
+      entity: 'farmer_profile',
+      entityId: profile.id,
+      action: 'update',
+      after: { bankDetailsUpdated: true },
+    });
+
+    return { updated: true };
   });
 });
 

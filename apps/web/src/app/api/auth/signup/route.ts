@@ -1,3 +1,4 @@
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { SignupSchema } from '@mawsim/core';
 import { db } from '@mawsim/db';
 import { users } from '@mawsim/db/schema';
@@ -6,6 +7,13 @@ import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  if (!checkRateLimit(`signup:${clientIp(request)}`, 10)) {
+    return NextResponse.json(
+      { error: 'Too many requests — réessayez dans 15 minutes.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = (await request.json()) as unknown;
     const parsed = SignupSchema.safeParse(body);

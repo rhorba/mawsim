@@ -56,6 +56,13 @@ export type TruckType = 'standard' | 'refrigerated' | 'bulk';
 
 export type AuditAction = 'create' | 'update' | 'bid' | 'agree' | 'fund' | 'release' | 'dispute';
 
+export type BankDetails = {
+  bankName: string;
+  rib: string; // Moroccan RIB (24 digits)
+  accountHolder: string;
+  iban?: string; // optional international format
+};
+
 export type ReviewerRole = 'farmer' | 'buyer';
 
 export type RFQStatus = 'open' | 'matched' | 'closed';
