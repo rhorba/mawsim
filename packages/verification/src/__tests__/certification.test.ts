@@ -57,6 +57,7 @@ vi.mock('drizzle-orm', () => ({
 }));
 
 import {
+  getFarmerCertifications,
   getPendingCertifications,
   submitCertification,
   verifyCertification,
@@ -96,6 +97,13 @@ describe('verifyCertification', () => {
 describe('getPendingCertifications', () => {
   it('returns an array of pending certifications', async () => {
     const certs = await getPendingCertifications();
+    expect(Array.isArray(certs)).toBe(true);
+  });
+});
+
+describe('getFarmerCertifications', () => {
+  it('returns certifications for the given farmerId', async () => {
+    const certs = await getFarmerCertifications('fp-1');
     expect(Array.isArray(certs)).toBe(true);
   });
 });

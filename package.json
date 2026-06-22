@@ -5,6 +5,9 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "test": "pnpm -r test",
+    "test:coverage": "pnpm -r --filter '!@mawsim/db' exec vitest run --coverage",
+    "test:e2e": "pnpm --filter web exec playwright test",
+    "test:e2e:ui": "pnpm --filter web exec playwright test --ui",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "db:migrate": "pnpm --filter @mawsim/db migrate",
@@ -14,6 +17,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@vitest/coverage-v8": "^2.1.8",
     "typescript": "^5.7.3"
   },
   "engines": {
