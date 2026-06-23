@@ -45,7 +45,7 @@ test.describe('Browse public listings (as buyer)', () => {
     const listingLink = page.locator('a[href*="/listings/"]').first();
     const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (href && href.match(/\/listings\/[^/]+$/)) {
+    if (href?.match(/\/listings\/[^/]+$/)) {
       await page.goto(href);
       await expect(page).toHaveURL(/\/listings\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('Browse public listings (as buyer)', () => {
     const listingLink = page.locator('a[href*="/listings/"]').first();
     const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (href && href.match(/\/listings\/[^/]+$/)) {
+    if (href?.match(/\/listings\/[^/]+$/)) {
       await page.goto(href);
       await expect(page.getByText(/MAD|dirham|qtx|quintal/i).first()).toBeVisible({
         timeout: 8_000,
@@ -103,7 +103,7 @@ test.describe('RFQ (Request for Quotation)', () => {
     const rfqLink = page.locator('a[href*="/buyer/rfqs/"]').first();
     const href = await rfqLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (href && href.match(/\/buyer\/rfqs\/[^/]+$/)) {
+    if (href?.match(/\/buyer\/rfqs\/[^/]+$/)) {
       await page.goto(href);
       await expect(page).toHaveURL(/\/buyer\/rfqs\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
@@ -148,7 +148,7 @@ test.describe('Buyer offer flow', () => {
     const listingLink = page.locator('a[href*="/listings/"]').first();
     const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (href && href.match(/\/listings\/[^/]+$/)) {
+    if (href?.match(/\/listings\/[^/]+$/)) {
       await page.goto(href);
       // Look for an offer button or price content
       // Either offer link or price text confirms listing detail loaded

@@ -108,9 +108,9 @@ test.describe('Farmer deals', () => {
       await expect(page.getByRole('heading').first()).toBeVisible();
     } else {
       // No deals yet — empty state
-      await expect(
-        page.getByText(/aucune transaction|no deals|pas de transaction/i)
-      ).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByText(/aucune transaction|no deals|pas de transaction/i)).toBeVisible({
+        timeout: 5_000,
+      });
     }
   });
 });
