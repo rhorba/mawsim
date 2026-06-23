@@ -20,14 +20,15 @@ test.describe('Farmer profile', () => {
 
   test('farm profile form has correct fields', async ({ page }) => {
     await page.goto('/fr/farmer/profile');
-    await expect(page.getByLabel(/nom de la ferme|farm name/i)).toBeVisible();
+    // Label is "Nom de l'exploitation" (farmName i18n key)
+    await expect(page.getByLabel(/exploitation|ferme|farm name/i)).toBeVisible();
     await expect(page.getByRole('combobox').or(page.getByLabel(/région/i))).toBeVisible();
   });
 
   test('farmer profile shows farm name and region for demo account', async ({ page }) => {
     await page.goto('/fr/farmer/profile');
     // Demo farmer is Mehdi El Fellah — his profile should be pre-filled
-    const farmField = page.getByLabel(/nom de la ferme|farm name/i);
+    const farmField = page.getByLabel(/exploitation|ferme|farm name/i);
     await expect(farmField).toBeVisible();
     const value = await farmField.inputValue();
     expect(value.length).toBeGreaterThan(0);
@@ -52,12 +53,10 @@ test.describe('Farmer listings', () => {
   test('new listing form renders all required fields', async ({ page }) => {
     await page.goto('/fr/farmer/listings/new');
     await expect(page).not.toHaveURL(/login/);
-    // Product category select
-    await expect(page.getByLabel(/catégorie|produit/i).first()).toBeVisible();
-    // Quantity
-    await expect(page.getByLabel(/quantité/i)).toBeVisible();
-    // Price
-    await expect(page.getByLabel(/prix/i)).toBeVisible();
+    // Form uses <span> labels + named inputs — check by name/role
+    await expect(page.locator('select[name="productCategory"]')).toBeVisible();
+    await expect(page.locator('input[name="quantityQtx"]')).toBeVisible();
+    await expect(page.locator('input[name="askPrice"]')).toBeVisible();
   });
 
   test('new listing form validates and prevents empty submit', async ({ page }) => {
@@ -70,33 +69,17 @@ test.describe('Farmer listings', () => {
   test('farmer can create a listing with valid data', async ({ page }) => {
     await page.goto('/fr/farmer/listings/new');
 
-    // Fill mandatory fields
-    const categorySelect = page.getByLabel(/catégorie|produit/i).first();
-    if (await categorySelect.isVisible()) {
-      await categorySelect.selectOption('cereals');
-    }
+    // Fill mandatory fields using name selectors (form uses <span> not <label>)
+    await page.locator('select[name="productCategory"]').selectOption('cereals');
+    await page.locator('select[name="region"]').selectOption({ index: 1 });
+    await page.locator('select[name="qualityGrade"]').selectOption('grade_a');
+    await page.locator('input[name="quantityQtx"]').fill('500');
+    await page.locator('input[name="minOrderQtx"]').fill('50');
+    await page.locator('input[name="askPrice"]').fill('28000');
 
-    const quantityField = page.getByLabel(/quantité/i);
-    if (await quantityField.isVisible()) {
-      await quantityField.fill('500');
-    }
-
-    const priceField = page.getByLabel(/prix.*qtx|prix.*quintal|prix demandé/i);
-    if (await priceField.isVisible()) {
-      await priceField.fill('28000');
-    }
-
-    const minOrderField = page.getByLabel(/commande min|minimum/i);
-    if (await minOrderField.isVisible()) {
-      await minOrderField.fill('50');
-    }
-
-    const availableField = page.getByLabel(/disponible jusqu|date limite/i);
-    if (await availableField.isVisible()) {
-      const future = new Date();
-      future.setMonth(future.getMonth() + 3);
-      await availableField.fill(future.toISOString().split('T')[0]!);
-    }
+    const future = new Date();
+    future.setMonth(future.getMonth() + 3);
+    await page.locator('input[name="availableUntil"]').fill(future.toISOString().split('T')[0]!);
 
     await page.getByRole('button', { name: /publier|créer|soumettre/i }).click();
 
@@ -114,18 +97,20 @@ test.describe('Farmer deals', () => {
   });
 
   test('deal detail page renders for existing deal', async ({ page }) => {
-    // Navigate to deals list first, then open first deal if available
     await page.goto('/fr/farmer/deals');
-    const dealLinks = page.getByRole('link', { name: /voir|détail|open/i });
-    const count = await dealLinks.count();
+    // Wait for deal card links to appear
+    const dealLink = page.locator('a[href*="/farmer/deals/"]').first();
+    const href = await dealLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await dealLinks.first().click();
+    if (href) {
+      await page.goto(href);
       await expect(page).toHaveURL(/\/farmer\/deals\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
     } else {
       // No deals yet — empty state
-      await expect(page.getByText(/aucune transaction|no deals/i)).toBeVisible();
+      await expect(
+        page.getByText(/aucune transaction|no deals|pas de transaction/i)
+      ).toBeVisible({ timeout: 5_000 });
     }
   });
 });

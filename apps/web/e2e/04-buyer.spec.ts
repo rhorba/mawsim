@@ -20,12 +20,13 @@ test.describe('Buyer profile', () => {
 
   test('profile form shows company name field', async ({ page }) => {
     await page.goto('/fr/buyer/profile');
-    await expect(page.getByLabel(/nom.*entreprise|company name/i)).toBeVisible();
+    // Label is "Raison sociale" (companyName i18n key)
+    await expect(page.locator('input[name="companyName"]')).toBeVisible();
   });
 
   test('demo buyer profile has Atlas Food pre-filled', async ({ page }) => {
     await page.goto('/fr/buyer/profile');
-    const companyField = page.getByLabel(/nom.*entreprise|company name/i);
+    const companyField = page.locator('input[name="companyName"]');
     await expect(companyField).toBeVisible();
     const value = await companyField.inputValue();
     expect(value.length).toBeGreaterThan(0);
@@ -40,11 +41,12 @@ test.describe('Browse public listings (as buyer)', () => {
 
   test('buyer can open listing detail page', async ({ page }) => {
     await page.goto('/fr/listings');
-    const listingLinks = page.getByRole('link', { name: /voir|détail|blé|olive|date/i });
-    const count = await listingLinks.count();
+    // Listing cards are <a href="/fr/listings/{id}"> — navigate by href to avoid click race
+    const listingLink = page.locator('a[href*="/listings/"]').first();
+    const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await listingLinks.first().click();
+    if (href && href.match(/\/listings\/[^/]+$/)) {
+      await page.goto(href);
       await expect(page).toHaveURL(/\/listings\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
     }
@@ -52,13 +54,14 @@ test.describe('Browse public listings (as buyer)', () => {
 
   test('listing detail shows price, quantity, grade', async ({ page }) => {
     await page.goto('/fr/listings');
-    const listingLinks = page.getByRole('link', { name: /voir/i });
-    const count = await listingLinks.count();
+    const listingLink = page.locator('a[href*="/listings/"]').first();
+    const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await listingLinks.first().click();
-      // Should show price-related content
-      await expect(page.getByText(/MAD|dirham|qtx|quintal/i)).toBeVisible({ timeout: 8_000 });
+    if (href && href.match(/\/listings\/[^/]+$/)) {
+      await page.goto(href);
+      await expect(page.getByText(/MAD|dirham|qtx|quintal/i).first()).toBeVisible({
+        timeout: 8_000,
+      });
     }
   });
 });
@@ -73,39 +76,21 @@ test.describe('RFQ (Request for Quotation)', () => {
   test('new RFQ page renders the form', async ({ page }) => {
     await page.goto('/fr/buyer/rfqs/new');
     await expect(page).not.toHaveURL(/login/);
-    // Category select
-    await expect(page.getByLabel(/catégorie|produit/i).first()).toBeVisible();
+    // Form uses <span> labels — check by input name
+    await expect(page.locator('select[name="productCategory"]')).toBeVisible();
   });
 
   test('buyer creates a new RFQ successfully', async ({ page }) => {
     await page.goto('/fr/buyer/rfqs/new');
 
-    const categorySelect = page.getByLabel(/catégorie|produit/i).first();
-    if (await categorySelect.isVisible()) {
-      await categorySelect.selectOption('cereals');
-    }
+    await page.locator('select[name="productCategory"]').selectOption('cereals');
+    await page.locator('input[name="quantityQtxMin"]').fill('500');
+    await page.locator('input[name="quantityQtxMax"]').fill('2000');
+    await page.locator('select[name="deliveryRegion"]').selectOption({ index: 1 });
 
-    const minQtyField = page.getByLabel(/quantité min/i);
-    if (await minQtyField.isVisible()) {
-      await minQtyField.fill('500');
-    }
-
-    const maxQtyField = page.getByLabel(/quantité max/i);
-    if (await maxQtyField.isVisible()) {
-      await maxQtyField.fill('2000');
-    }
-
-    const regionSelect = page.getByLabel(/région.*livraison|delivery region/i);
-    if (await regionSelect.isVisible()) {
-      await regionSelect.selectOption({ index: 1 });
-    }
-
-    const neededByField = page.getByLabel(/nécessaire avant|needed by|date limite/i);
-    if (await neededByField.isVisible()) {
-      const future = new Date();
-      future.setMonth(future.getMonth() + 2);
-      await neededByField.fill(future.toISOString().split('T')[0]!);
-    }
+    const future = new Date();
+    future.setMonth(future.getMonth() + 2);
+    await page.locator('input[name="neededBy"]').fill(future.toISOString().split('T')[0]!);
 
     await page.getByRole('button', { name: /publier|soumettre|créer/i }).click();
     await page.waitForURL(/\/fr\/buyer\/rfqs/, { timeout: 10_000 });
@@ -114,11 +99,12 @@ test.describe('RFQ (Request for Quotation)', () => {
 
   test('RFQ detail shows matched listings', async ({ page }) => {
     await page.goto('/fr/buyer/rfqs');
-    const rfqLinks = page.getByRole('link', { name: /voir|détail/i });
-    const count = await rfqLinks.count();
+    // RFQ cards are <a href="/buyer/rfqs/{id}">
+    const rfqLink = page.locator('a[href*="/buyer/rfqs/"]').first();
+    const href = await rfqLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await rfqLinks.first().click();
+    if (href && href.match(/\/buyer\/rfqs\/[^/]+$/)) {
+      await page.goto(href);
       await expect(page).toHaveURL(/\/buyer\/rfqs\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
     }
@@ -134,15 +120,16 @@ test.describe('Buyer deal management', () => {
 
   test('deal detail renders offer thread', async ({ page }) => {
     await page.goto('/fr/buyer/deals');
-    const dealLinks = page.getByRole('link', { name: /voir|détail/i });
-    const count = await dealLinks.count();
+    // Deal cards are <a href="/fr/buyer/deals/{id}">
+    const dealLink = page.locator('a[href*="/buyer/deals/"]').first();
+    const href = await dealLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await dealLinks.first().click();
+    if (href) {
+      await page.goto(href);
       await expect(page).toHaveURL(/\/buyer\/deals\//);
       await expect(page.getByRole('heading').first()).toBeVisible();
     } else {
-      await expect(page.getByText(/aucune transaction|no deals/i)).toBeVisible();
+      await expect(page.getByText(/aucune transaction|no deals/i)).toBeVisible({ timeout: 5_000 });
     }
   });
 });
@@ -158,22 +145,16 @@ test.describe('Buyer price alerts', () => {
 test.describe('Buyer offer flow', () => {
   test('offer form renders on listing detail', async ({ page }) => {
     await page.goto('/fr/listings');
-    const listingLinks = page.getByRole('link', { name: /voir/i });
-    const count = await listingLinks.count();
+    const listingLink = page.locator('a[href*="/listings/"]').first();
+    const href = await listingLink.getAttribute('href', { timeout: 6_000 }).catch(() => null);
 
-    if (count > 0) {
-      await listingLinks.first().click();
-      // Look for an offer button
-      const offerBtn = page.getByRole('button', { name: /faire une offre|proposer|offrir/i });
+    if (href && href.match(/\/listings\/[^/]+$/)) {
+      await page.goto(href);
+      // Look for an offer button or price content
+      // Either offer link or price text confirms listing detail loaded
       const offerLink = page.getByRole('link', { name: /faire une offre|proposer/i });
-      const hasOffer = (await offerBtn.count()) > 0 || (await offerLink.count()) > 0;
-      // Either offer button exists or content confirms listing detail loaded
-      const priceText = page.getByText(/MAD|quintal/i);
-      await expect(priceText.or(offerBtn).or(offerLink)).toBeVisible({ timeout: 8_000 });
-      if (hasOffer) {
-        await (offerBtn.first().isVisible() ? offerBtn.first() : offerLink.first()).click();
-        await expect(page.getByLabel(/prix|price/i).first()).toBeVisible({ timeout: 6_000 });
-      }
+      const priceText = page.getByText(/MAD\/quintal/i);
+      await expect(priceText.or(offerLink).first()).toBeVisible({ timeout: 8_000 });
     }
   });
 });

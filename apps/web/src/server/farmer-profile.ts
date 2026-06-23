@@ -1,8 +1,9 @@
 'use server';
 
 import { withRole } from '@/lib/action';
-import { BankDetailsSchema, FarmerProfileSchema, decrypt, encrypt } from '@mawsim/core';
+import { BankDetailsSchema, FarmerProfileSchema } from '@mawsim/core';
 import type { BankDetails } from '@mawsim/core';
+import { decrypt, encrypt } from '@mawsim/core/crypto';
 import { withUserContext } from '@mawsim/db';
 import {
   accessAuditLogs,

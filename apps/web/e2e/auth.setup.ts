@@ -20,9 +20,9 @@ async function loginAs(
   storagePath: string
 ) {
   await page.goto(`${BASE}/fr/login`);
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Mot de passe').fill(password);
-  await page.getByRole('button', { name: /connexion/i }).click();
+  await page.getByLabel(/email/i).fill(email);
+  await page.getByLabel(/mot de passe|password/i).fill(password);
+  await page.getByRole('button', { name: /se connecter|connexion/i }).click();
 
   // Wait for redirect away from login page (any protected route loads)
   await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10_000 });

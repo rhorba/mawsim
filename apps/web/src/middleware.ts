@@ -10,6 +10,8 @@ const auth: NextAuthResult['auth'] = NextAuth(authConfig).auth;
 const intlMiddleware = createIntlMiddleware(routing);
 
 const middleware = auth((req) => {
+  // API routes must not get locale-prefixed by intlMiddleware
+  if (req.nextUrl.pathname.startsWith('/api/')) return;
   return intlMiddleware(req);
 }) as unknown as NextMiddleware;
 
