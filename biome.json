@@ -56,7 +56,8 @@
       "build",
       "*.generated.*",
       "next-env.d.ts",
-      "**/migrations/meta/**"
+      "**/migrations/meta/**",
+      "docs/e2e-results/**"
     ]
   }
 }
